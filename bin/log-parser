@@ -1,0 +1,96 @@
+﻿#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use FindBin qw($RealBin);
+use lib "$RealBin/../lib";
+
+use Getopt::Long qw(:config no_ignore_case bundling);
+use Pod::Usage;
+use LogParser::Core;
+use LogParser::Stats;
+use LogParser::Formatter;
+
+my $filter;
+my @params;
+my $format = 'csv';
+my $stats_flag = 0;
+my $help = 0;
+my $man = 0;
+
+GetOptions(
+    'f|filter=s' => \$filter,
+    'p|param=s@' => \@params,
+    'o|format=s' => \$format,
+    's|stats'    => \$stats_flag,
+    'h|help'     => \$help,
+    'man'        => \$man,
+) or pod2usage(2);
+
+pod2usage(1) if $help;
+pod2usage(-verbose => 2) if $man;
+
+if (@params == 1 && $params[0] =~ /,/) {
+    @params = split /,/, $params[0];
+}
+
+my $input_fh;
+if (@ARGV && $ARGV[0] ne '-') {
+    my $file = $ARGV[0];
+    open $input_fh, '<', $file or die "Error opening '$file': $!\n";
+} else {
+    $input_fh = \*STDIN;
+}
+
+my $parser = LogParser::Core->new(
+    filter => $filter,
+    params => \@params,
+);
+
+my $stats = LogParser::Stats->new();
+
+if ($format eq 'csv' && !$stats_flag) {
+    print LogParser::Formatter->format_csv_header(@params);
+}
+
+while (my $line = <$input_fh>) {
+    chomp $line;
+    my $entry = $parser->parse_line($line);
+    next unless $entry;
+
+    if ($stats_flag) {
+        $stats->record($entry);
+    } else {
+        if ($format eq 'csv') {
+            print LogParser::Formatter->format_csv_row($entry, @params);
+        } elsif ($format eq 'jsonl' || $format eq 'json') {
+            print LogParser::Formatter->format_json_line($entry);
+        }
+    }
+}
+
+close $input_fh if @ARGV && $ARGV[0] ne '-';
+
+if ($stats_flag) {
+    print LogParser::Formatter->format_terminal_summary($stats->get_summary());
+}
+
+__END__
+
+=head1 NAME
+
+log-parser - Streaming web server log analyzer
+
+=head1 SYNOPSIS
+
+log-parser [options] [logfile]
+
+Options:
+  -f, --filter STRING      Filter log lines by keyword or regex
+  -p, --param KEY          Extract specific query parameter(s)
+  -o, --format FORMAT      Output format: csv (default), jsonl
+  -s, --stats              Print traffic metrics and status distribution
+  -h, --help               Display usage information
+      --man                Display manual page
+
+=cut

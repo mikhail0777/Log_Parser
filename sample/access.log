@@ -1,0 +1,5 @@
+192.168.1.100 - user1 [10/Oct/2026:13:55:36 -0700] "GET /searchbox?engine=solr&query=amd+epyc&subengine=hardware HTTP/1.1" 200 4512 "https://example.com" "Mozilla/5.0"
+192.168.1.101 - - [10/Oct/2026:13:55:37 -0700] "GET /searchbox?engine=google&query=zen5+architecture&subengine=cpu HTTP/1.1" 200 2310 "https://example.com" "Mozilla/5.0"
+192.168.1.102 - - [10/Oct/2026:13:55:38 -0700] "GET /api/v1/metrics HTTP/1.1" 500 512 "-" "HealthCheck/1.0"
+192.168.1.100 - user1 [10/Oct/2026:13:55:39 -0700] "GET /searchbox?engine=bing&query=threadripper+pro&subengine=benchmarks HTTP/1.1" 200 3890 "https://example.com" "Mozilla/5.0"
+192.168.1.103 - - [10/Oct/2026:13:55:40 -0700] "GET /nonexistent-page HTTP/1.1" 404 312 "-" "Mozilla/5.0"
